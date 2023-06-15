@@ -1,27 +1,31 @@
+# import sys
+# import os
 import pandas as pd
-import sys
-import os
 
+OPEN_FILE_PATH = "/home/jhspaz988/Downloads/Summary - People Report.csv"
+WRITE_FILE_PATH = "/home/jhspaz988/Documents/Sorted_Summary.xlsx"
 
 def sort(ofp: str, wfp: str) -> None:
-    data = pd.read_csv(ofp)
-    data_keys = list(data.columns)
+    headers = ["Username", "First Name", "Last Name", "% Complete", "Is Complete", "Courses Assigned", "Courses Completed", "Crew"]
+    data = pd.read_csv(ofp, names=headers)
     data.sort_values(
-        by=[data_keys[-1], data_keys[2]],
+        by=[headers[-1], headers[2]],
         inplace=True,
         ascending=True
         )
-    shift_keys = data[data_keys[-1]].unique()
+    shift_keys = data[headers[-1]].unique()
+
+    data[headers[3]] = pd.to_numeric(data[headers[3]], errors='coerce')
 
     with pd.ExcelWriter(wfp, "openpyxl") as writer:
         for shift in shift_keys:
-            new_data = data[(data[data_keys[-1]] == shift) & (data[data_keys[3]] < 100)]
+            new_data = data[(data[headers[-1]] == shift) & (data[headers[3]] < 100)]
             if not new_data.empty:
                 new_data.to_excel(writer, sheet_name=str(shift), index=False)
-        blank_sheet = data[(data[data_keys[-1]].isna()) & (data[data_keys[3]] < 100)]
+        blank_sheet = data[(data[headers[-1]].isna()) & (data[headers[3]] < 100)]
         blank_sheet.to_excel(writer, sheet_name="None", index=False)
 
 
-open_file_path = os.path.abspath(sys.argv[1])
-write_file_path = os.path.abspath(sys.argv[2])
-sort(ofp=open_file_path, wfp=write_file_path)
+# OPEN_FILE_PATH = os.path.abspath(sys.argv[1])
+# WRITE_FILE_PATH = os.path.abspath(sys.argv[2])
+sort(ofp=OPEN_FILE_PATH, wfp=WRITE_FILE_PATH)
